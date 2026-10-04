@@ -2,120 +2,115 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="theme-color" content="#160c1f">
 		<title>Trick or Treat .io</title>
+		<!-- Trick or Treat .io web shell (web/shell.html, the Web presets' custom_html_shell).
+		     Night paper and porch orange like the game's menus (docs/ART_STYLE.md "UI look"),
+		     so loading and the first frame read as one thing, in the arcade iframe or alone.
+		     tools/web_build.sh adds the phone/desktop pack choice before the engine starts. -->
 		<style>
-html, body, #canvas {
-	margin: 0;
-	padding: 0;
-	border: 0;
-}
-
+html, body, #canvas { margin: 0; padding: 0; border: 0; }
+html, body { width: 100%; height: 100%; }
 body {
-	color: white;
-	background-color: black;
+	background: #160c1f;
+	color: #f1e2c4;
 	overflow: hidden;
 	touch-action: none;
+	-webkit-user-select: none;
+	user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color: transparent;
+	overscroll-behavior: none;
 }
-
-#canvas {
-	display: block;
-}
-
-#canvas:focus {
-	outline: none;
-}
-
-#status, #status-splash, #status-progress {
-	position: absolute;
-	left: 0;
-	right: 0;
-}
-
-#status, #status-splash {
-	top: 0;
-	bottom: 0;
-}
-
+#canvas { display: block; }
+#canvas:focus { outline: none; }
 #status {
-	background-color: #160c1f;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
+	position: absolute; inset: 0;
+	background: radial-gradient(ellipse at 50% 120%, #ef8a2b 0%, #6a2f2a 28%, #2a1d38 62%, #160c1f 100%);
+	display: flex; flex-direction: column; justify-content: center; align-items: center;
+	gap: 0.9rem;
 	visibility: hidden;
-}
-
-#status-splash {
-	max-height: 100%;
-	max-width: 100%;
-	margin: auto;
-}
-
-#status-splash.show-image--false {
-	display: none;
-}
-
-#status-splash.fullsize--true {
-	height: 100%;
-	width: 100%;
-	object-fit: contain;
-}
-
-#status-splash.use-filter--false {
-	image-rendering: pixelated;
-}
-
-#status-progress, #status-notice {
-	display: none;
-}
-
-#status-progress {
-	bottom: 10%;
-	width: 50%;
-	margin: 0 auto;
-}
-
-#status-notice {
-	background-color: #5b3943;
-	border-radius: 0.5rem;
-	border: 1px solid #9b3943;
-	color: #e0e0e0;
-	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
-	line-height: 1.3;
-	margin: 0 2rem;
-	overflow: hidden;
-	padding: 1rem;
 	text-align: center;
-	z-index: 1;
+	padding: 1.5rem;
+	box-sizing: border-box;
+	font-family: 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
 }
+#status-eyebrow {
+	font-size: 0.72rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+	color: #ef8a2b;
+}
+#status-title {
+	font-family: 'Permanent Marker', 'Marker Felt', 'Comic Sans MS', cursive;
+	font-weight: 400;
+	color: #ef8a2b;
+	transform: rotate(-2deg);
+	font-size: clamp(2.8rem, 13vw, 4.6rem);
+	line-height: 1;
+	text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+#status-tag { color: #c9b8d6; font-size: clamp(0.9rem, 3.6vw, 1.05rem); }
+#status-bar {
+	width: min(64vw, 300px); height: 10px; margin-top: 0.6rem;
+	border-radius: 999px; background: rgba(0, 0, 0, 0.4); overflow: hidden;
+	display: none;
+}
+#status-fill {
+	height: 100%; width: 0%;
+	background: linear-gradient(90deg, #ef8a2b, #ffd35c);
+	border-radius: 999px;
+	transition: width 0.2s ease-out;
+}
+#status-fill.indeterminate { width: 35%; animation: slide 1.2s ease-in-out infinite alternate; }
+@keyframes slide { from { margin-left: 0%; } to { margin-left: 65%; } }
+#status-notice {
+	display: none;
+	background: #f1e2c4; color: #1c1023;
+	border-radius: 18px; line-height: 1.45;
+	max-width: 30rem; padding: 1rem 1.25rem;
+	box-shadow: 0 6px 14px rgba(0, 0, 0, 0.38);
+}
+#status-splash { display: none; }
 		</style>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Nunito:wght@600;700&display=swap" rel="stylesheet">
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
-<meta name="theme-color" content="#160c1f">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<style>html, body { overscroll-behavior: none; background-color: #160c1f; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }</style>
+
 	</head>
 	<body>
-		<canvas id="canvas">
-			Your browser does not support the canvas tag.
-		</canvas>
-
-		<noscript>
-			Your browser does not support JavaScript.
-		</noscript>
-
+		<canvas id="canvas">Your browser does not support the canvas tag.</canvas>
+		<noscript>Trick or Treat .io needs JavaScript.</noscript>
 		<div id="status">
 			<img id="status-splash" class="show-image--false fullsize--true use-filter--true" src="index.png" alt="">
-			<progress id="status-progress"></progress>
+			<div id="status-eyebrow">A Halloween .io game</div>
+			<div id="status-title">Trick or Treat .io</div>
+			<div id="status-tag">Filling the pillowcases&hellip;</div>
+			<div id="status-bar"><div id="status-fill"></div></div>
 			<div id="status-notice"></div>
 		</div>
 
+		<script>
+// Browsers start audio suspended until a gesture: keep every AudioContext the
+// engine makes and resume them on the first tap / click / key.
+(function () {
+	const AC = window.AudioContext || window.webkitAudioContext;
+	const ctxs = [];
+	if (AC) {
+		const Wrapped = function (...args) { const c = new AC(...args); ctxs.push(c); return c; };
+		Wrapped.prototype = AC.prototype;
+		window.AudioContext = Wrapped;
+		if (window.webkitAudioContext) { window.webkitAudioContext = Wrapped; }
+	}
+	const unlock = () => ctxs.forEach((c) => { if (c.state !== 'running' && c.state !== 'closed') { c.resume(); } });
+	['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'].forEach((e) => document.addEventListener(e, unlock, true));
+}());
+		</script>
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":true,"fileSizes":{"index.pck":8666492,"index.wasm":37686550,"index.mobile.pck":5435644},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":8673824,"index.wasm":37686550,"index.mobile.pck":5442976},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const TOT_PACK = (function () {
 	const forced = new URLSearchParams(location.search).get('pack');
@@ -128,104 +123,57 @@ const TOT_PACK = (function () {
 const engine = new Engine(GODOT_CONFIG);
 
 (function () {
-	const statusOverlay = document.getElementById('status');
-	const statusProgress = document.getElementById('status-progress');
-	const statusNotice = document.getElementById('status-notice');
-
+	const overlay = document.getElementById('status');
+	const bar = document.getElementById('status-bar');
+	const fill = document.getElementById('status-fill');
+	const notice = document.getElementById('status-notice');
 	let initializing = true;
-	let statusMode = '';
+	let mode = '';
 
-	function setStatusMode(mode) {
-		if (statusMode === mode || !initializing) {
-			return;
-		}
-		if (mode === 'hidden') {
-			statusOverlay.remove();
-			initializing = false;
-			return;
-		}
-		statusOverlay.style.visibility = 'visible';
-		statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
-		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
-		statusMode = mode;
+	function setMode(m) {
+		if (mode === m || !initializing) { return; }
+		if (m === 'hidden') { overlay.remove(); initializing = false; return; }
+		overlay.style.visibility = 'visible';
+		bar.style.display = m === 'progress' ? 'block' : 'none';
+		notice.style.display = m === 'notice' ? 'block' : 'none';
+		mode = m;
 	}
 
-	function setStatusNotice(text) {
-		while (statusNotice.lastChild) {
-			statusNotice.removeChild(statusNotice.lastChild);
-		}
-		const lines = text.split('\n');
-		lines.forEach((line) => {
-			statusNotice.appendChild(document.createTextNode(line));
-			statusNotice.appendChild(document.createElement('br'));
-		});
-	}
-
-	function displayFailureNotice(err) {
+	function fail(err) {
 		console.error(err);
-		if (err instanceof Error) {
-			setStatusNotice(err.message);
-		} else if (typeof err === 'string') {
-			setStatusNotice(err);
-		} else {
-			setStatusNotice('An unknown error occurred.');
-		}
-		setStatusMode('notice');
+		const text = err instanceof Error ? err.message : (typeof err === 'string' ? err : 'Something went wrong loading the neighbourhood.');
+		notice.textContent = '';
+		text.split('\n').forEach((line) => { notice.appendChild(document.createTextNode(line)); notice.appendChild(document.createElement('br')); });
+		setMode('notice');
 		initializing = false;
 	}
 
-	const missing = Engine.getMissingFeatures({
-		threads: GODOT_THREADS_ENABLED,
-	});
+	// Keep keyboard focus on the game after taps on the page.
+	document.addEventListener('pointerdown', () => {
+		const c = document.getElementById('canvas');
+		if (c && document.activeElement !== c) { c.focus(); }
+	}, true);
+	// The page itself never zooms (pinch, double-tap).
+	document.addEventListener('gesturestart', (e) => e.preventDefault());
+	document.addEventListener('dblclick', (e) => e.preventDefault());
 
+	const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
 	if (missing.length !== 0) {
-		if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
-			let serviceWorkerRegistrationPromise;
-			try {
-				serviceWorkerRegistrationPromise = navigator.serviceWorker.getRegistration();
-			} catch (err) {
-				serviceWorkerRegistrationPromise = Promise.reject(new Error('Service worker registration failed.'));
-			}
-			// There's a chance that installing the service worker would fix the issue
-			Promise.race([
-				serviceWorkerRegistrationPromise.then((registration) => {
-					if (registration != null) {
-						return Promise.reject(new Error('Service worker already exists.'));
-					}
-					return registration;
-				}).then(() => engine.installServiceWorker()),
-				// For some reason, `getRegistration()` can stall
-				new Promise((resolve) => {
-					setTimeout(() => resolve(), 2000);
-				}),
-			]).then(() => {
-				// Reload if there was no error.
-				window.location.reload();
-			}).catch((err) => {
-				console.error('Error while registering service worker:', err);
-			});
-		} else {
-			// Display the message as usual
-			const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
-			displayFailureNotice(missingMsg + missing.join('\n'));
-		}
-	} else {
-		setStatusMode('progress');
-		engine.startGame({
-			'mainPack': TOT_PACK,
-			'onProgress': function (current, total) {
-				if (current > 0 && total > 0) {
-					statusProgress.value = current;
-					statusProgress.max = total;
-				} else {
-					statusProgress.removeAttribute('value');
-					statusProgress.removeAttribute('max');
-				}
-			},
-		}).then(() => {
-			setStatusMode('hidden');
-		}, displayFailureNotice);
+		fail('This browser is missing features the game needs:\n' + missing.join('\n') + '\nTry a current Chrome, Edge, Firefox or Safari.');
+		return;
 	}
+	setMode('progress');
+	engine.startGame({
+			'mainPack': TOT_PACK,
+		onProgress: function (current, total) {
+			if (current > 0 && total > 0) {
+				fill.classList.remove('indeterminate');
+				fill.style.width = Math.min(100, (100 * current) / total).toFixed(1) + '%';
+			} else {
+				fill.classList.add('indeterminate');
+			}
+		},
+	}).then(() => setMode('hidden'), fail);
 }());
 		</script>
 	</body>
